@@ -8,39 +8,40 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
-	"net"
+	"os"
+	"os/signal"
+	"time"
 
-	"github.com/SaiVikrantG/server/internal/handlers"
+	"github.com/SaiVikrantG/server/internal/server"
 )
 
+const DefaultContextTimeout = 2
+
 func main() {
-	port_num := flag.Int("port", 28333, "Port to start the server on")
+	port := flag.Int("port", 28333, "Port to start the server on")
 
 	flag.Parse()
-	port := *port_num
 
-	conn_port := fmt.Sprintf(":%v", port)
-	listener, err := net.Listen("tcp", conn_port)
-	if err != nil {
-		fmt.Printf("Cant start a server on port %v", port)
+	srv := server.ServerInit(*port)
+	if err := srv.ServerStart(); err != nil {
+		fmt.Println("Server failed to start with the following error: ", err)
 		return
 	}
-	defer listener.Close()
 
-	fmt.Printf("Server started at port %v\n", port)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+	defer stop()
 
-	for {
-		conn, err := listener.Accept()
-		fmt.Println(conn.RemoteAddr())
+	go srv.ServerListen(ctx)
 
-		if err != nil {
-			fmt.Println("Error accepting conenctions:", err)
-			continue
-		}
+	<-ctx.Done()
 
-		handlers.HandleConn(conn)
+	shutDownctx, cancel := context.WithTimeout(context.Background(), DefaultContextTimeout*time.Second)
+	defer cancel()
+
+	if err := srv.ServerStop(shutDownctx); err != nil {
+		fmt.Println("Server failed to stop with error: ", err)
 	}
-
 }

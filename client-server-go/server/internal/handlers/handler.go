@@ -15,8 +15,8 @@ func HandleConn(conn net.Conn) {
 		return
 	}
 
-	fmt.Printf("Recieved: \n%s", string(buffer[:n]))
+	fmt.Printf("Recieved: \n%s\n", string(buffer[:n]))
 
-	res := "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 6\r\nConnection: close\r\n\r\nHello!\r\n"
+	const res string = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 6\r\nConnection: close\r\n\r\nHello!\r\n"
 	fmt.Fprintf(conn, res)
 }
