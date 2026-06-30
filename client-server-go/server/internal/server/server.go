@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/SaiVikrantG/server/internal/handlers"
+	"github.com/SaiVikrantG/server/internal/parser"
 )
 
 type Server struct {
@@ -32,6 +32,13 @@ func (s *Server) ServerStart() error {
 	return nil
 }
 
+func processRequest(conn net.Conn) {
+	defer conn.Close()
+
+	parser.Parse(conn)
+
+}
+
 func (s *Server) ServerListen(ctx context.Context) {
 	for {
 		conn, err := s.Listener.Accept()
@@ -47,7 +54,7 @@ func (s *Server) ServerListen(ctx context.Context) {
 			}
 		}
 
-		go handlers.HandleConn(conn)
+		go processRequest(conn)
 	}
 }
 

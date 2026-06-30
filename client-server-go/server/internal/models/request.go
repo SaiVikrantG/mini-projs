@@ -2,8 +2,8 @@ package models
 
 type Request struct {
 	HTTPMethod  string
-	FilePath    string
+	Path        string
 	HTTPVersion string
-	Host        string
-	Connection  string
+	Headers     map[string]string
+	Body        []byte
 }
