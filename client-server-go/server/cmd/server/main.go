@@ -1,4 +1,3 @@
-// Parse that request header to get the file name.
 // Strip the path off for security reasons.
 // Read the data from the named file.
 // Determine the type of data in the file, HTML or text.
