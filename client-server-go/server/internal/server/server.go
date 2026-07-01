@@ -37,6 +37,10 @@ func processRequest(conn net.Conn) {
 
 	parser.Parse(conn)
 
+	const res string = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 6\r\nConnection: close\r\n\r\nHello!\r\n"
+	fmt.Fprintf(conn, res)
+
+	// return
 }
 
 func (s *Server) ServerListen(ctx context.Context) {
