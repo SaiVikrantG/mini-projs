@@ -1,22 +1,10 @@
 package handlers
 
 import (
-	"fmt"
-	"net"
+	"github.com/SaiVikrantG/server/internal/models"
+	"github.com/SaiVikrantG/server/internal/response"
 )
 
-func HandleConn(conn net.Conn) {
-	defer conn.Close()
-
-	buffer := make([]byte, 1024)
-	n, err := conn.Read(buffer)
-	if err != nil {
-		fmt.Printf("Error reading: %v\n", err)
-		return
-	}
-
-	fmt.Printf("Recieved: \n%s\n", string(buffer[:n]))
-
-	const res string = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 6\r\nConnection: close\r\n\r\nHello!\r\n"
-	fmt.Fprintf(conn, res)
+type Handler interface {
+	ServeHTTP(w response.ResponseWriter, r *models.Request)
 }

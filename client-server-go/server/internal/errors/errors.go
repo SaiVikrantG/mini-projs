@@ -23,6 +23,10 @@ func NewRequestTooLarge(message string) *HTTPError {
 	return &HTTPError{StatusCode: 413, Message: message}
 }
 
+func NewInternalServerError(message string) *HTTPError {
+	return &HTTPError{StatusCode: 500, Message: message}
+}
+
 func NewHTTPVersionNotSupported(message string) *HTTPError {
 	return &HTTPError{StatusCode: 505, Message: message}
 }
