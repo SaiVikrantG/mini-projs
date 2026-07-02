@@ -1,9 +1,3 @@
-// Strip the path off for security reasons.
-// Read the data from the named file.
-// Determine the type of data in the file, HTML or text.
-// Build an HTTP response packet with the file data in the payload.
-// Send that HTTP response back to the client.
-
 package main
 
 import (
@@ -14,6 +8,8 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/SaiVikrantG/server/internal/handlers"
+	"github.com/SaiVikrantG/server/internal/router"
 	"github.com/SaiVikrantG/server/internal/server"
 )
 
@@ -21,10 +17,15 @@ const DefaultContextTimeout = 2
 
 func main() {
 	port := flag.Int("port", 28333, "Port to start the server on")
+	rootDir := flag.String("dir", "./", "Root directory to serve files from")
 
 	flag.Parse()
 
-	srv := server.ServerInit(*port)
+	r := router.NewRouter()
+	r.Handle("GET", "/file1.txt", &handlers.FileHandler{RootDir: *rootDir})
+	r.Handle("GET", "/file2.html", &handlers.FileHandler{RootDir: *rootDir})
+
+	srv := server.ServerInit(*port, r)
 	if err := srv.ServerStart(); err != nil {
 		fmt.Println("Server failed to start with the following error: ", err)
 		return
