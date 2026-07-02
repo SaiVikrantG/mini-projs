@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -15,6 +16,7 @@ type FileHandler struct {
 
 func (h *FileHandler) ServeHTTP(w response.ResponseWriter, r *models.Request) {
 	path := filepath.Join(h.RootDir, filepath.Clean(r.Path))
+	fmt.Println(path)
 
 	data, err := os.ReadFile(path)
 	if err != nil {

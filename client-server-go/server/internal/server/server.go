@@ -2,20 +2,26 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 
+	apperrors "github.com/SaiVikrantG/server/internal/errors"
+	"github.com/SaiVikrantG/server/internal/handlers"
 	"github.com/SaiVikrantG/server/internal/parser"
+	"github.com/SaiVikrantG/server/internal/response"
 )
 
 type Server struct {
 	Port     int
 	Listener net.Listener
+	Handler  handlers.Handler
 }
 
-func ServerInit(port int) *Server {
+func ServerInit(port int, h handlers.Handler) *Server {
 	return &Server{
-		Port: port,
+		Port:    port,
+		Handler: h,
 	}
 }
 
@@ -32,15 +38,22 @@ func (s *Server) ServerStart() error {
 	return nil
 }
 
-func processRequest(conn net.Conn) {
+func processRequest(conn net.Conn, h handlers.Handler) {
 	defer conn.Close()
 
-	parser.Parse(conn)
+	w := response.NewResponseWriter(conn)
 
-	const res string = "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 6\r\nConnection: close\r\n\r\nHello!\r\n"
-	fmt.Fprintf(conn, res)
+	req, err := parser.Parse(conn)
+	if err != nil {
+		var httpErr *apperrors.HTTPError
+		if errors.As(err, &httpErr) {
+			w.Write(httpErr.StatusCode, []byte(httpErr.Message))
+			return
+		}
+		return
+	}
 
-	// return
+	h.ServeHTTP(w, req)
 }
 
 func (s *Server) ServerListen(ctx context.Context) {
@@ -58,7 +71,7 @@ func (s *Server) ServerListen(ctx context.Context) {
 			}
 		}
 
-		go processRequest(conn)
+		go processRequest(conn, s.Handler)
 	}
 }
 
@@ -70,7 +83,7 @@ func (s *Server) ServerStop(ctx context.Context) error {
 	}
 
 	select {
-	case <-ctx.Done(): //not needed as such
+	case <-ctx.Done():
 		fmt.Println("Shutdown timeout exceeded")
 	default:
 		fmt.Println("Server stopped gracefully")
