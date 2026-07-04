@@ -3,6 +3,7 @@ package response
 import (
 	"fmt"
 	"net"
+	"strconv"
 )
 
 type responseWriter struct {
@@ -23,6 +24,7 @@ func (rw *responseWriter) Header() map[string]string {
 
 func (rw *responseWriter) Write(statusCode int, body []byte) (int, error) {
 	fmt.Fprintf(rw.conn, "HTTP/1.1 %d %s\r\n", statusCode, statusText(statusCode))
+	rw.headers["Content-Length"] = strconv.Itoa(len(body))
 	for k, v := range rw.headers {
 		fmt.Fprintf(rw.conn, "%s: %s\r\n", k, v)
 	}
